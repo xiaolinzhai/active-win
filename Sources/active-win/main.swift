@@ -25,17 +25,18 @@ if !hasScreenRecordingPermission() {
 	print("active-win requires the screen recording permission in “System Preferences › Security & Privacy › Privacy › Screen Recording”.")
 	exit(1)
 }
-
+print("[null")
 for window in windows {
+	print(",")
 	let windowOwnerPID = window[kCGWindowOwnerPID as String] as! Int
 
 	if windowOwnerPID != frontmostAppPID {
-		continue
+		//continue
 	}
 
 	// Skip transparent windows, like with Chrome.
 	if (window[kCGWindowAlpha as String] as! Double) == 0 {
-		continue
+		//continue
 	}
 
 	let bounds = CGRect(dictionaryRepresentation: window[kCGWindowBounds as String] as! CFDictionary)!
@@ -43,14 +44,14 @@ for window in windows {
 	// Skip tiny windows, like the Chrome link hover statusbar.
 	let minWinSize: CGFloat = 50
 	if bounds.width < minWinSize || bounds.height < minWinSize {
-		continue
+		//continue
 	}
 
 	let appPid = window[kCGWindowOwnerPID as String] as! pid_t
 
 	// This can't fail as we're only dealing with apps.
-	let app = NSRunningApplication(processIdentifier: appPid)!
-	
+	let app = NSRunningApplication(processIdentifier: appPid)
+
 	let appName = window[kCGWindowOwnerName as String] as! String
 
 	var dict: [String: Any] = [
@@ -65,8 +66,8 @@ for window in windows {
 		"owner": [
 			"name": appName,
 			"processId": appPid,
-			"bundleId": app.bundleIdentifier!,
-			"path": app.bundleURL!.path
+			"bundleId": app?.bundleIdentifier!  ?? "",
+			"path": app?.bundleURL!.path  ?? ""
 		],
 		"memoryUsage": window[kCGWindowMemoryUsage as String] as! Int
 	]
@@ -80,8 +81,8 @@ for window in windows {
 	}
 
 	print(try! toJson(dict))
-	exit(0)
+	//exit(0)
 }
 
-print("null")
+print("]")
 exit(0)
