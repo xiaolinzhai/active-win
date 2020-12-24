@@ -95,7 +95,29 @@ let windowImage: CGImage? =
     CGWindowListCreateImage(.null, .optionIncludingWindow, windowID,
                             [.boundsIgnoreFraming, .nominalResolution]);
     
-    let targetSize = NSSize(width: 100.0, height: 100.0)
+    var ratio: Float = 0.0
+    let imageWidth = Float(windowImage!.width)
+    let imageHeight = Float(windowImage!.height)
+    let maxWidth: Float = 256.0
+    let maxHeight: Float = 256.0
+    
+    // Get ratio (landscape or portrait)
+    if (imageWidth > imageHeight) {
+        ratio = maxWidth / imageWidth
+    } else {
+        ratio = maxHeight / imageHeight
+    }
+    
+    // Calculate new size based on the ratio
+    if ratio > 1 {
+        ratio = 1
+    }
+    
+    let width = imageWidth * ratio
+    let height = imageHeight * ratio
+    
+    
+    let targetSize = NSSize(width: Int(width), height: Int(height))
     let newImageResized =  windowImage!.asNSImage()!.resized(to: targetSize)!;
     print(newImageResized.base64String()!);
     //let uiImage = convertCIImageToUIImage(windowImage);
@@ -103,44 +125,41 @@ let windowImage: CGImage? =
     
 }
 
-extension NSImage {
-   
-}
 
 
-func resize(_ image: CGImage) -> CGImage? {
-        var ratio: Float = 0.0
-        let imageWidth = Float(image.width)
-        let imageHeight = Float(image.height)
-        let maxWidth: Float = 1024.0
-        let maxHeight: Float = 768.0
-        
-        // Get ratio (landscape or portrait)
-        if (imageWidth > imageHeight) {
-            ratio = maxWidth / imageWidth
-        } else {
-            ratio = maxHeight / imageHeight
-        }
-        
-        // Calculate new size based on the ratio
-        if ratio > 1 {
-            ratio = 1
-        }
-        
-        let width = imageWidth * ratio
-        let height = imageHeight * ratio
-        
-        guard let colorSpace = image.colorSpace else { return nil }
-        guard let context = CGContext(data: nil, width: Int(width), height: Int(height), bitsPerComponent: image.bitsPerComponent, bytesPerRow: image.bytesPerRow, space: colorSpace, bitmapInfo: image.alphaInfo.rawValue) else { return nil }
-        
-        // draw image to context (resizing it)
-        context.interpolationQuality = .high
-        context.draw(image, in: CGRect(x: 0, y: 0, width: Int(width), height: Int(height)))
-        
-        // extract resulting image from context
-        return context.makeImage()
-
-    }
+//func resize(_ image: CGImage) -> CGImage? {
+//        var ratio: Float = 0.0
+//        let imageWidth = Float(image.width)
+//        let imageHeight = Float(image.height)
+//        let maxWidth: Float = 1024.0
+//        let maxHeight: Float = 768.0
+//
+//        // Get ratio (landscape or portrait)
+//        if (imageWidth > imageHeight) {
+//            ratio = maxWidth / imageWidth
+//        } else {
+//            ratio = maxHeight / imageHeight
+//        }
+//
+//        // Calculate new size based on the ratio
+//        if ratio > 1 {
+//            ratio = 1
+//        }
+//
+//        let width = imageWidth * ratio
+//        let height = imageHeight * ratio
+//
+//        guard let colorSpace = image.colorSpace else { return nil }
+//        guard let context = CGContext(data: nil, width: Int(width), height: Int(height), bitsPerComponent: image.bitsPerComponent, bytesPerRow: image.bytesPerRow, space: colorSpace, bitmapInfo: image.alphaInfo.rawValue) else { return nil }
+//
+//        // draw image to context (resizing it)
+//        context.interpolationQuality = .high
+//        context.draw(image, in: CGRect(x: 0, y: 0, width: Int(width), height: Int(height)))
+//
+//        // extract resulting image from context
+//        return context.makeImage()
+//
+//    }
 
 
 
@@ -220,11 +239,11 @@ extension NSImage {
     func base64String() -> String? {
         guard
             let bits = self.representations.first as? NSBitmapImageRep,
-            let data = bits.representation(using: .jpeg, properties: [NSBitmapImageRep.PropertyKey.compressionFactor:1.0])
+            let data = bits.representation(using: .png, properties: [NSBitmapImageRep.PropertyKey.compressionFactor:1.0])
         else {
             return nil
         }
 
-        return "data:image/jpeg;base64,\(data.base64EncodedString())"
+        return "data:image/png;base64,\(data.base64EncodedString())"
     }
 }
