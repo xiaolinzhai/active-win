@@ -29,7 +29,7 @@ var c = 0;
 if(CommandLine.arguments.count > 1){
 	let com = CommandLine.arguments[1]
 	if(com == "getAllWindow"){
-		getAllWindow();
+        printWindow(windowID:307);
 	}
 
 }

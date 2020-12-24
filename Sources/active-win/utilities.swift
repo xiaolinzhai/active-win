@@ -96,11 +96,15 @@ let windowImage: CGImage? =
                             [.boundsIgnoreFraming, .nominalResolution]);
     
     let targetSize = NSSize(width: 100.0, height: 100.0)
-    let newImageResized =  windowImage!.asNSImage()!.resized(to: targetSize);
-    
+    let newImageResized =  windowImage!.asNSImage()!.resized(to: targetSize)!;
+    print(newImageResized.base64String()!);
     //let uiImage = convertCIImageToUIImage(windowImage);
     //let imgRes = uiImage.scalePreservingAspectRatio(CGSize(100,100));
     
+}
+
+extension NSImage {
+   
 }
 
 
@@ -194,6 +198,7 @@ extension NSImage {
             return nil
         }
 }
+
 // CGImage转UIImage相对简单，直接使用UIImage的初始化方法即可
 // 原理同上
 //func convertCIImageToUIImage(cgImage:CGImage) -> UIImage {
@@ -204,3 +209,22 @@ extension NSImage {
 //    // returns underlying CIImage or nil if CGImageRef based
 //    return uiImage
 //}
+
+
+//let imageData = NSData.alloc().initWithBase64EncodedString_options(base64String, NSDataBase64DecodingIgnoreUnknownCharacters);
+//let image = NSImage.alloc().initWithData(imageData);
+
+
+extension NSImage {
+
+    func base64String() -> String? {
+        guard
+            let bits = self.representations.first as? NSBitmapImageRep,
+            let data = bits.representation(using: .jpeg, properties: [NSBitmapImageRep.PropertyKey.compressionFactor:1.0])
+        else {
+            return nil
+        }
+
+        return "data:image/jpeg;base64,\(data.base64EncodedString())"
+    }
+}
