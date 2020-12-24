@@ -89,3 +89,118 @@ func getAllWindow()  {
     }
     print("]")
 }
+
+func printWindow(windowID:UInt32){
+let windowImage: CGImage? =
+    CGWindowListCreateImage(.null, .optionIncludingWindow, windowID,
+                            [.boundsIgnoreFraming, .nominalResolution]);
+    
+    let targetSize = NSSize(width: 100.0, height: 100.0)
+    let newImageResized =  windowImage!.asNSImage()!.resized(to: targetSize);
+    
+    //let uiImage = convertCIImageToUIImage(windowImage);
+    //let imgRes = uiImage.scalePreservingAspectRatio(CGSize(100,100));
+    
+}
+
+
+func resize(_ image: CGImage) -> CGImage? {
+        var ratio: Float = 0.0
+        let imageWidth = Float(image.width)
+        let imageHeight = Float(image.height)
+        let maxWidth: Float = 1024.0
+        let maxHeight: Float = 768.0
+        
+        // Get ratio (landscape or portrait)
+        if (imageWidth > imageHeight) {
+            ratio = maxWidth / imageWidth
+        } else {
+            ratio = maxHeight / imageHeight
+        }
+        
+        // Calculate new size based on the ratio
+        if ratio > 1 {
+            ratio = 1
+        }
+        
+        let width = imageWidth * ratio
+        let height = imageHeight * ratio
+        
+        guard let colorSpace = image.colorSpace else { return nil }
+        guard let context = CGContext(data: nil, width: Int(width), height: Int(height), bitsPerComponent: image.bitsPerComponent, bytesPerRow: image.bytesPerRow, space: colorSpace, bitmapInfo: image.alphaInfo.rawValue) else { return nil }
+        
+        // draw image to context (resizing it)
+        context.interpolationQuality = .high
+        context.draw(image, in: CGRect(x: 0, y: 0, width: Int(width), height: Int(height)))
+        
+        // extract resulting image from context
+        return context.makeImage()
+
+    }
+
+
+
+extension CGImage {
+   /// Create a CIImage version of this image
+   ///
+   /// - Returns: Converted image, or nil
+   func asCIImage() -> CIImage {
+      return CIImage(cgImage: self)
+   }
+
+   /// Create an NSImage version of this image
+   ///
+   /// - Returns: Converted image, or nil
+   func asNSImage() -> NSImage? {
+      return NSImage(cgImage: self, size: .zero)
+   }
+}
+extension NSImage {
+   /// Create a CIImage using the best representation available
+   ///
+   /// - Returns: Converted image, or nil
+   func asCIImage() -> CIImage? {
+      if let cgImage = self.asCGImage() {
+         return CIImage(cgImage: cgImage)
+      }
+      return nil
+   }
+
+   /// Create a CGImage using the best representation of the image available in the NSImage for the image size
+   ///
+   /// - Returns: Converted image, or nil
+   func asCGImage() -> CGImage? {
+      var rect = NSRect(origin: CGPoint(x: 0, y: 0), size: self.size)
+      return self.cgImage(forProposedRect: &rect, context: NSGraphicsContext.current, hints: nil)
+    }
+    
+    func resized(to newSize: NSSize) -> NSImage? {
+            if let bitmapRep = NSBitmapImageRep(
+                bitmapDataPlanes: nil, pixelsWide: Int(newSize.width), pixelsHigh: Int(newSize.height),
+                bitsPerSample: 8, samplesPerPixel: 4, hasAlpha: true, isPlanar: false,
+                colorSpaceName: .calibratedRGB, bytesPerRow: 0, bitsPerPixel: 0
+            ) {
+                bitmapRep.size = newSize
+                NSGraphicsContext.saveGraphicsState()
+                NSGraphicsContext.current = NSGraphicsContext(bitmapImageRep: bitmapRep)
+                draw(in: NSRect(x: 0, y: 0, width: newSize.width, height: newSize.height), from: .zero, operation: .copy, fraction: 1.0)
+                NSGraphicsContext.restoreGraphicsState()
+
+                let resizedImage = NSImage(size: newSize)
+                resizedImage.addRepresentation(bitmapRep)
+                return resizedImage
+            }
+
+            return nil
+        }
+}
+// CGImage转UIImage相对简单，直接使用UIImage的初始化方法即可
+// 原理同上
+//func convertCIImageToUIImage(cgImage:CGImage) -> UIImage {
+//    let uiImage = UIImage.init(cgImage: cgImage)
+//    // 注意！！！这里的uiImage的uiImage.ciImage 是nil
+//    let ciImage = uiImage.ciImage
+//    // 注意！！！上面的ciImage是nil，原因如下，官方解释
+//    // returns underlying CIImage or nil if CGImageRef based
+//    return uiImage
+//}
