@@ -25,6 +25,18 @@ if !hasScreenRecordingPermission() {
 	print("active-win requires the screen recording permission in “System Preferences › Security & Privacy › Privacy › Screen Recording”.")
 	exit(1)
 }
+
+var c = 0;
+if(CommandLine.arguments.count > 0){
+	var com = CommandLine.arguments[0]
+}
+
+for arg in CommandLine.arguments {
+    print("argument \(c) is: \(arg)")
+    c += 1
+}
+
+/*
 print("[null")
 for window in windows {
 	print(",")
@@ -84,5 +96,5 @@ for window in windows {
 	//exit(0)
 }
 
-print("]")
+print("]") */
 exit(0)
