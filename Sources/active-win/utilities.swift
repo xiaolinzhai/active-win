@@ -94,35 +94,53 @@ func printWindow(windowID:UInt32){
 let windowImage: CGImage? =
     CGWindowListCreateImage(.null, .optionIncludingWindow, windowID,
                             [.boundsIgnoreFraming, .nominalResolution]);
-    
+
     var ratio: Float = 0.0
     let imageWidth = Float(windowImage!.width)
     let imageHeight = Float(windowImage!.height)
     let maxWidth: Float = 256.0
     let maxHeight: Float = 256.0
-    
+
     // Get ratio (landscape or portrait)
     if (imageWidth > imageHeight) {
         ratio = maxWidth / imageWidth
     } else {
         ratio = maxHeight / imageHeight
     }
-    
+
     // Calculate new size based on the ratio
     if ratio > 1 {
         ratio = 1
     }
-    
+
     let width = imageWidth * ratio
     let height = imageHeight * ratio
-    
-    
+
+
     let targetSize = NSSize(width: Int(width), height: Int(height))
     let newImageResized =  windowImage!.asNSImage()!.resized(to: targetSize)!;
     print(newImageResized.base64String()!);
     //let uiImage = convertCIImageToUIImage(windowImage);
     //let imgRes = uiImage.scalePreservingAspectRatio(CGSize(100,100));
-    
+
+}
+
+func activateWindow(){
+	let appRef = AXUIElementCreateApplication(880);
+    let app = NSRunningApplication(processIdentifier:880);
+    app!.activate()
+    var ptr:CFArray?
+    var frontWindow: AXUIElement? = nil
+    let err = AXUIElementCopyAttributeValues(appRef, kAXWindowsAttribute as CFString,0,99999,&ptr)
+
+    print(err.rawValue)
+
+    if err == .success,let elements = ptr as? [AXUIElement] {
+    for element in elements {
+    	let error = AXUIElementPerformAction(element, kAXRaiseAction as CFString)
+    		print(error.rawValue)
+    	}
+    }
 }
 
 
@@ -196,7 +214,7 @@ extension NSImage {
       var rect = NSRect(origin: CGPoint(x: 0, y: 0), size: self.size)
       return self.cgImage(forProposedRect: &rect, context: NSGraphicsContext.current, hints: nil)
     }
-    
+
     func resized(to newSize: NSSize) -> NSImage? {
             if let bitmapRep = NSBitmapImageRep(
                 bitmapDataPlanes: nil, pixelsWide: Int(newSize.width), pixelsHigh: Int(newSize.height),
